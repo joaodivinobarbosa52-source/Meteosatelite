@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AgroPro · Medidor de Área</title>
+
+<!-- ═══ PWA META TAGS ═══ -->
+<meta name="application-name" content="AgroPro Campo">
+<meta name="description" content="Medição de área por GPS e cálculo de produtividade de soja">
+<meta name="theme-color" content="#1a1a0e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AgroPro">
+<meta name="msapplication-TileColor" content="#1a1a0e">
+<meta name="msapplication-TileImage" content="icons/icon-144.png">
+<meta name="msapplication-tap-highlight" content="no">
+
+<!-- Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Ícones Apple Touch -->
+<link rel="apple-touch-icon" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="96x96"  href="icons/icon-96.png">
+<link rel="shortcut icon" href="icons/icon-96.png">
+
+<!-- Open Graph (compartilhamento) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="AgroPro · Medidor de Área">
+<meta property="og:description" content="Mede área de talhões por GPS e calcula produtividade de soja">
+<meta property="og:image" content="icons/icon-512.png">
+<!-- ═══ FIM PWA META ═══ -->
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --solo:#1a1a0e; --solo2:#252518; --solo3:#2f2f20; --solo4:#3a3a28;
+    --lime:#b8e04a; --lime2:#d4f06a; --lime-dim:#7aaa1a;
+    --amber:#e8a020; --text:#e8e8d8; --text-dim:#8a8a70;
+    --border:#3a3a28; --red:#e05040; --green:#40c060; --blue:#4a9de0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--solo); color:var(--text); height:100dvh; display:flex; flex-direction:column; overflow:hidden; }
+
+  header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:var(--solo2); border-bottom:2px solid var(--lime-dim); z-index:1000; flex-shrink:0; }
+  .logo { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; color:var(--lime); }
+  .logo span { color:var(--amber); }
+  .mode-ind { font-family:'DM Mono',monospace; font-size:10px; color:var(--lime); background:rgba(184,224,74,.12); border:1px solid var(--lime-dim); padding:3px 10px; border-radius:3px; letter-spacing:1px; }
+  .mode-ind.rec { color:var(--red); background:rgba(224,80,64,.15); border-color:var(--red); animation:pb 1.2s infinite; }
+  @keyframes pb { 0%,100%{box-shadow:0 0 0 0 rgba(224,80,64,.4)} 50%{box-shadow:0 0 0 4px rgba(224,80,64,0)} }
+
+  .app-body { display:flex; flex:1; overflow:hidden; }
+
+  .sidebar { width:300px; min-width:300px; background:var(--solo2); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow-y:auto; z-index:100; }
+  .section { padding:14px; border-bottom:1px solid var(--border); }
+  .sec-title { font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:2px; color:var(--lime); margin-bottom:10px; }
+
+  .mode-tabs { display:flex; background:var(--solo3); border:1px solid var(--border); border-radius:6px; padding:3px; margin-bottom:12px; gap:3px; }
+  .mode-tab { flex:1; padding:8px 4px; border:none; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; cursor:pointer; background:transparent; color:var(--text-dim); transition:all .15s; text-align:center; line-height:1.3; }
+  .mode-tab.active { background:var(--lime); color:var(--solo); }
+
+  .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn { flex:1; min-width:70px; padding:10px 8px; border:none; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .btn-p { background:var(--lime); color:var(--solo); }
+  .btn-p:hover { background:var(--lime2); }
+  .btn-p:disabled { background:var(--solo4); color:var(--text-dim); cursor:not-allowed; }
+  .btn-d { background:transparent; color:var(--red); border:1px solid var(--red); }
+  .btn-d:hover { background:rgba(224,80,64,.12); }
+  .btn-s { background:var(--solo3); color:var(--text); border:1px solid var(--border); }
+  .btn-s:hover { background:var(--solo4); }
+
+  .btn-gps { background:var(--red); color:#fff; font-size:14px; padding:14px; width:100%; border-radius:6px; border:none; cursor:pointer; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; }
+  .btn-gps.rec { background:var(--solo3); color:var(--red); border:2px solid var(--red); animation:pbg 1.5s infinite; }
+  @keyframes pbg { 0%,100%{background:var(--solo3)} 50%{background:rgba(224,80,64,.15)} }
+
+  .gps-stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
+  .gps-stat { background:var(--solo3); border:1px solid var(--border); border-radius:4px; padding:8px; text-align:center; }
+  .gps-stat-val { font-family:'DM Mono',monospace; font-size:16px; color:var(--lime); line-height:1; }
+  .gps-stat-label { font-size:9px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-top:3px; }
+  .acc-ok { border-color:var(--green)!important; }
+  .acc-warn { border-color:var(--amber)!important; }
+  .acc-bad { border-color:var(--red)!important; }
+
+  .area-box { background:var(--solo3); border:1px solid var(--lime-dim); border-radius:6px; padding:12px; text-align:center; margin:10px 0; }
+  .area-val { font-family:'Bebas Neue',sans-serif; font-size:38px; color:var(--lime); line-height:1; }
+  .area-unit { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim); margin-top:2px; }
+  .area-sub { font-family:'DM Mono',monospace; font-size:11px; color:var(--amber); margin-top:4px; }
+
+  .inp-group { margin-bottom:10px; }
+  .inp-label { font-size:11px; font-weight:600; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; }
+  .inp-row { display:flex; gap:6px; align-items:center; }
+  input[type=number],input[type=text],select { background:var(--solo3); border:1px solid var(--border); color:var(--text); padding:9px 10px; border-radius:4px; font-family:'DM Mono',monospace; font-size:13px; width:100%; outline:none; }
+  input:focus,select:focus { border-color:var(--lime-dim); }
+  .unit-b { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim); white-space:nowrap; background:var(--solo4); padding:9px 8px; border-radius:4px; border:1px solid var(--border); }
+
+  .prod-card { background:linear-gradient(135deg,var(--solo3),var(--solo4)); border:1px solid var(--amber); border-radius:6px; padding:14px; margin-top:8px; }
+  .prod-title { font-family:'Bebas Neue',sans-serif; font-size:12px; letter-spacing:2px; color:var(--amber); margin-bottom:10px; }
+  .prod-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .prod-row:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .prod-lbl { font-size:11px; color:var(--text-dim); }
+  .prod-v { font-family:'DM Mono',monospace; font-size:14px; font-weight:500; color:var(--text); }
+  .prod-v.hl { font-size:18px; color:var(--lime); }
+
+  .tip { font-size:11px; color:var(--text-dim); text-align:center; padding:8px; background:var(--solo3); border-radius:4px; line-height:1.5; }
+
+  .pts-list { max-height:90px; overflow-y:auto; margin-bottom:6px; }
+  .pt-item { display:flex; justify-content:space-between; padding:4px 8px; background:var(--solo3); border-radius:3px; margin-bottom:3px; font-family:'DM Mono',monospace; font-size:10px; color:var(--text-dim); }
+  .pt-num { color:var(--lime); font-weight:500; }
+
+  .hist-item { background:var(--solo3); border:1px solid var(--border); border-radius:4px; padding:10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:flex-start; }
+  .hist-item:hover { border-color:var(--lime-dim); }
+  .hist-name { font-size:12px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .hist-meta { font-family:'DM Mono',monospace; font-size:10px; color:var(--text-dim); display:flex; gap:8px; flex-wrap:wrap; }
+  .hist-del { background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; padding:2px 4px; border-radius:3px; }
+  .hist-del:hover { color:var(--red); background:rgba(224,80,64,.1); }
+  .empty { font-size:11px; color:var(--text-dim); text-align:center; padding:10px; font-style:italic; }
+
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  #map { flex:1; height:100%; }
+
+  .gps-dot { width:18px; height:18px; border-radius:50%; background:#4a9de0; border:3px solid #fff; animation:gp 1.5s infinite; }
+  @keyframes gp { 0%{box-shadow:0 0 0 0 rgba(74,157,224,.6)} 70%{box-shadow:0 0 0 12px rgba(74,157,224,0)} 100%{box-shadow:0 0 0 0 rgba(74,157,224,0)} }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--solo2); }
+  ::-webkit-scrollbar-thumb { background:var(--solo4); border-radius:2px; }
+  .leaflet-popup-content-wrapper { background:var(--solo2)!important; color:var(--text)!important; border:1px solid var(--lime-dim)!important; border-radius:6px!important; }
+  .leaflet-popup-tip { background:var(--solo2)!important; }
+
+  @media(max-width:600px) {
+    .sidebar { width:100%; min-width:unset; max-height:52vh; }
+    .app-body { flex-direction:column-reverse; }
+    #map { height:48vh; }
+  }
+
+  /* PWA UI */
+  #pwaInstallBanner {
+    display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999;
+    background:linear-gradient(135deg,var(--solo2),var(--solo3));
+    border-top:2px solid var(--lime-dim);
+    padding:14px 16px; gap:12px; align-items:center;
+    animation:slideUp .35s cubic-bezier(.22,1,.36,1);
+  }
+  #pwaInstallBanner.show { display:flex; }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .pwa-banner-icon { width:44px; height:44px; border-radius:10px; flex-shrink:0; }
+  .pwa-banner-text { flex:1; }
+  .pwa-banner-title { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:1.5px; color:var(--lime); line-height:1; }
+  .pwa-banner-sub { font-size:11px; color:var(--text-dim); margin-top:2px; }
+  .pwa-banner-btns { display:flex; gap:8px; flex-shrink:0; }
+  .pwa-btn-install { background:var(--lime); color:var(--solo); border:none; border-radius:5px; padding:9px 16px; font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:1px; cursor:pointer; }
+  .pwa-btn-install:hover { background:var(--lime2); }
+  .pwa-btn-dismiss { background:transparent; color:var(--text-dim); border:1px solid var(--border); border-radius:5px; padding:9px 12px; font-size:12px; cursor:pointer; }
+  .pwa-btn-dismiss:hover { border-color:var(--text-dim); color:var(--text); }
+
+  #pwaToast {
+    display:none; position:fixed; top:70px; left:50%; transform:translateX(-50%);
+    z-index:9999; background:var(--solo2); border:1px solid var(--lime-dim);
+    border-radius:8px; padding:10px 16px; gap:10px; align-items:center;
+    font-size:12px; color:var(--text); white-space:nowrap;
+    box-shadow:0 4px 20px rgba(0,0,0,.5);
+    animation:fadeIn .3s ease;
+  }
+  #pwaToast.show { display:flex; }
+  @keyframes fadeIn { from{opacity:0;transform:translateX(-50%) translateY(-8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  .toast-dot { width:8px; height:8px; border-radius:50%; background:var(--lime); flex-shrink:0; }
+  .toast-upd-btn { background:var(--lime); color:var(--solo); border:none; border-radius:4px; padding:4px 10px; font-size:11px; font-weight:600; cursor:pointer; margin-left:8px; }
+  #pwaStatus { font-family:'DM Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:.5px; margin-left:8px; opacity:.6; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Agro<span>Pro</span> · Campo</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="mode-ind" id="modeInd">NAVEGAÇÃO</div>
+    <span id="pwaStatus"></span>
+  </div>
+</header>
+
+<!-- Banner install PWA -->
+<div id="pwaInstallBanner">
+  <img src="icons/icon-96.png" class="pwa-banner-icon" alt="AgroPro" onerror="this.style.display='none'">
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Instalar AgroPro</div>
+    <div class="pwa-banner-sub">Funciona offline · Acesso rápido · Sem navegador</div>
+  </div>
+  <div class="pwa-banner-btns">
+    <button class="pwa-btn-install" onclick="pwaInstall()">Instalar</button>
+    <button class="pwa-btn-dismiss" onclick="pwaDismiss()">✕</button>
+  </div>
+</div>
+
+<!-- Toast atualização -->
+<div id="pwaToast">
+  <div class="toast-dot"></div>
+  <span id="pwaToastMsg">App atualizado!</span>
+  <button class="toast-upd-btn" id="pwaToastBtn" onclick="document.getElementById('pwaToast').classList.remove('show')">OK</button>
+</div>
+
+<div class="app-body">
+<div class="sidebar">
+
+  <!-- MEDIR ÁREA -->
+  <div class="section">
+    <div class="sec-title">📐 Medir Área</div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabM" onclick="switchMode('manual')">🖱️ Manual<br><span style="font-size:9px;font-weight:400">Clique no mapa</span></button>
+      <button class="mode-tab" id="tabG" onclick="switchMode('gps')">🛰️ GPS<br><span style="font-size:9px;font-weight:400">Andar na área</span></button>
+    </div>
+
+    <!-- MANUAL -->
+    <div class="panel active" id="panelM">
+      <div class="btn-row" style="margin-bottom:10px">
+        <button class="btn btn-p" id="btnDraw" onclick="toggleDraw()">✏️ Desenhar</button>
+        <button class="btn btn-s" id="btnUndo" onclick="undoPoint()" disabled>↩ Desfazer</button>
+        <button class="btn btn-d" id="btnClearM" onclick="clearAll()" disabled>✕ Limpar</button>
+      </div>
+      <div class="tip" id="tipM">👆 Toque em <strong>"Desenhar"</strong> e clique no mapa para marcar os pontos</div>
+    </div>
+
+    <!-- GPS -->
+    <div class="panel" id="panelG">
+      <div class="gps-stats">
+        <div class="gps-stat" id="stAcc"><div class="gps-stat-val" id="vAcc">—</div><div class="gps-stat-label">Precisão (m)</div></div>
+        <div class="gps-stat"><div class="gps-stat-val" id="vPts">0</div><div class="gps-stat-label">Pontos GPS</div></div>
+        <div class="gps-stat"><div class="gps-stat-val" id="vDist">0</div><div class="gps-stat-label">Distância (m)</div></div>
+        <div class="gps-stat"><div class="gps-stat-val" id="vTime">00:00</div><div class="gps-stat-label">Tempo</div></div>
+      </div>
+      <button class="btn-gps" id="btnGps" onclick="toggleGps()">
+        <span id="gpsIco">⏺</span><span id="gpsTxt">INICIAR GRAVAÇÃO GPS</span>
+      </button>
+      <div class="tip" id="tipG">🛰️ Caminhe pelo <strong>perímetro</strong> da área. O GPS registra automaticamente.</div>
+      <button class="btn btn-d" onclick="clearAll()" style="width:100%;margin-top:8px">✕ Limpar Área</button>
+    </div>
+
+    <!-- ÁREA (compartilhado) -->
+    <div class="area-box">
+      <div class="area-val" id="areaHa">0,00</div>
+      <div class="area-unit">HECTARES</div>
+      <div class="area-sub" id="areaSub">0,00 alq · 0 m²</div>
+    </div>
+
+    <div class="inp-group">
+      <div class="inp-label">Nome do Talhão</div>
+      <input type="text" id="talhaoName" placeholder="Ex: Talhão Norte A1"/>
+    </div>
+
+    <div id="ptsList" class="pts-list"></div>
+  </div>
+
+  <!-- PRODUTIVIDADE -->
+  <div class="section">
+    <div class="sec-title">🌱 Produtividade de Soja</div>
+
+    <div class="inp-group">
+      <div class="inp-label">Peso da Soja Colhida</div>
+      <div class="inp-row">
+        <input type="number" id="pesoSoja" placeholder="0" min="0" step="0.01" oninput="calcProd()"/>
+        <select id="unid" style="width:90px" onchange="calcProd()">
+          <option value="kg">kg</option>
+          <option value="sc" selected>sacas</option>
+          <option value="ton">toneladas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="inp-group">
+      <div class="inp-label">Umidade (%)</div>
+      <div class="inp-row">
+        <input type="number" id="umid" value="13" min="0" max="30" step="0.1" oninput="calcProd()"/>
+        <div class="unit-b">%</div>
+      </div>
+    </div>
+
+    <div class="prod-card">
+      <div class="prod-title">⚡ RESULTADO</div>
+      <div class="prod-row"><span class="prod-lbl">Peso base 13%</span><span class="prod-v" id="rPeso">— kg</span></div>
+      <div class="prod-row"><span class="prod-lbl">Sacas colhidas</span><span class="prod-v" id="rSacas">— sc</span></div>
+      <div class="prod-row"><span class="prod-lbl">Área medida</span><span class="prod-v" id="rArea">— ha</span></div>
+      <div class="prod-row"><span class="prod-lbl">Produtividade</span><span class="prod-v hl" id="rProd">— sc/ha</span></div>
+      <div class="prod-row"><span class="prod-lbl">Em kg/ha</span><span class="prod-v" id="rProdKg">— kg/ha</span></div>
+      <div class="prod-row"><span class="prod-lbl">Classificação</span><span class="prod-v" id="rClass" style="color:var(--text-dim)">—</span></div>
+    </div>
+
+    <button class="btn btn-p" style="width:100%;margin-top:10px" onclick="salvar()">💾 Salvar Talhão</button>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="section">
+    <div class="sec-title">📋 Talhões Salvos</div>
+    <div id="hist"><div class="empty">Nenhum talhão salvo ainda</div></div>
+  </div>
+
+</div><!-- /sidebar -->
+
+<div id="map"></div>
+</div><!-- /app-body -->
+
+<script>
+// MAP
+const map = L.map('map',{center:[-15.78,-47.93],zoom:5,zoomControl:false});
+L.control.zoom({position:'topright'}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19}).addTo(map);
+const sEl = document.createElement('style');
+sEl.textContent=`.leaflet-tooltip.ptlabel{background:#1a1a0e;color:#b8e04a;border:1px solid #7aaa1a;font-family:'Bebas Neue',sans-serif;font-size:11px;padding:1px 5px;}`;
+document.head.appendChild(sEl);
+
+// STATE
+let curMode='manual', drawing=false;
+let pts=[], mks=[], polyL=null, polyG=null;
+let areaHa=0;
+let talhoes=JSON.parse(localStorage.getItem('agro_talhoes')||'[]');
+
+// GPS state
+let watchId=null, recording=false;
+let gpsMk=null, gpsTrail=null;
+let gpsStart=null, timerInv=null;
+let lastPt=null, distTotal=0, lastTime=0;
+
+// ---- MODE SWITCH ----
+function switchMode(m){
+  curMode=m;
+  document.getElementById('tabM').classList.toggle('active',m==='manual');
+  document.getElementById('tabG').classList.toggle('active',m==='gps');
+  document.getElementById('panelM').classList.toggle('active',m==='manual');
+  document.getElementById('panelG').classList.toggle('active',m==='gps');
+  if(m==='manual') stopGps();
+  else if(drawing) toggleDraw();
+}
+
+// ---- MANUAL ----
+function toggleDraw(){
+  drawing=!drawing;
+  const btn=document.getElementById('btnDraw');
+  const ind=document.getElementById('modeInd');
+  if(drawing){
+    btn.textContent='⏹ Parar'; btn.style.background='var(--amber)'; btn.style.color='var(--solo)';
+    ind.textContent='DESENHANDO';
+    map.getContainer().style.cursor='crosshair';
+    setTip('m','🖊 Clique no mapa para marcar pontos · Mín. 3 · Clique "Parar" para fechar');
+  } else {
+    btn.textContent='✏️ Desenhar'; btn.style.background=''; btn.style.color='';
+    ind.textContent='NAVEGAÇÃO';
+    map.getContainer().style.cursor='';
+    if(pts.length>=3){ drawPoly(false); setTip('m',`✅ Área fechada com ${pts.length} pontos · Informe o peso da soja`); }
+  }
+  updBtns();
+}
+
+map.on('click',function(e){
+  if(!drawing||curMode!=='manual') return;
+  addPt([e.latlng.lat,e.latlng.lng],false);
+});
+
+function addPt(latlng,isGps){
+  pts.push(latlng);
+  const mk=L.circleMarker(latlng,{
+    radius:isGps?5:7,
+    color:isGps?'#4a9de0':'#b8e04a',
+    fillColor:isGps?'#4a9de0':'#b8e04a',
+    fillOpacity:1, weight:2
+  }).addTo(map);
+  if(!isGps) mk.bindTooltip(`P${pts.length}`,{permanent:true,direction:'top',className:'ptlabel',offset:[0,-8]}).openTooltip();
+  mks.push(mk);
+
+  if(polyL) map.removeLayer(polyL);
+  if(pts.length>=2) polyL=L.polyline(pts,{color:isGps?'#4a9de0':'#b8e04a',weight:2,dashArray:'6,4',opacity:.7}).addTo(map);
+  if(pts.length>=3){ calcArea(); drawPoly(true); }
+
+  updPtsList(); updBtns();
+}
+
+// ---- GPS ----
+function toggleGps(){ recording ? finishGps() : startGps(); }
+
+function startGps(){
+  if(!navigator.geolocation){ alert('GPS não disponível neste dispositivo.'); return; }
+  clearAll(true);
+  recording=true; gpsStart=Date.now(); distTotal=0; lastPt=null; lastTime=0;
+
+  document.getElementById('btnGps').classList.add('rec');
+  document.getElementById('gpsIco').textContent='⏹';
+  document.getElementById('gpsTxt').textContent='PARAR E FECHAR ÁREA';
+  document.getElementById('modeInd').textContent='⏺ GRAVANDO';
+  document.getElementById('modeInd').classList.add('rec');
+  setTip('g','🔴 <strong>Gravando!</strong> Caminhe pelo perímetro. Toque "Parar" ao fechar o percurso.');
+
+  timerInv=setInterval(updTimer,1000);
+  watchId=navigator.geolocation.watchPosition(onGps,onGpsErr,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+}
+
+function onGps(pos){
+  const {latitude:lat,longitude:lng,accuracy:acc}=pos.coords;
+  const now=Date.now();
+
+  // precisão
+  const stAcc=document.getElementById('stAcc');
+  document.getElementById('vAcc').textContent=acc.toFixed(0);
+  stAcc.className='gps-stat '+(acc<=5?'acc-ok':acc<=15?'acc-warn':'acc-bad');
+
+  // centralizar + marcador posição
+  map.setView([lat,lng],Math.max(map.getZoom(),17));
+  if(gpsMk) map.removeLayer(gpsMk);
+  gpsMk=L.marker([lat,lng],{icon:L.divIcon({className:'',html:'<div class="gps-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
+
+  if(!recording) return;
+  if(now-lastTime<3000) return;   // min 3s entre pontos
+  if(acc>20) return;              // ignora se precisão ruim
+
+  if(lastPt){
+    const d=haversine(lastPt[0],lastPt[1],lat,lng);
+    if(d<2) return;               // ignora <2m
+    distTotal+=d;
+    document.getElementById('vDist').textContent=distTotal.toFixed(0);
+  }
+  lastPt=[lat,lng]; lastTime=now;
+
+  addPt([lat,lng],true);
+  document.getElementById('vPts').textContent=pts.length;
+
+  if(gpsTrail) map.removeLayer(gpsTrail);
+  gpsTrail=L.polyline(pts,{color:'#4a9de0',weight:3,opacity:.8}).addTo(map);
+}
+
+function onGpsErr(e){ setTip('g',`⚠️ Erro GPS: ${e.message}`); }
+
+function finishGps(){
+  stopGps();
+  if(pts.length>=3){ drawPoly(false); calcArea(); setTip('g',`✅ <strong>${pts.length} pontos GPS</strong> registrados · Informe o peso da soja`); }
+  else setTip('g','⚠️ Poucos pontos. Tente novamente percorrendo o perímetro completo.');
+}
+
+function stopGps(){
+  if(watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
+  recording=false;
+  clearInterval(timerInv);
+  const btn=document.getElementById('btnGps');
+  if(btn){ btn.classList.remove('rec'); document.getElementById('gpsIco').textContent='⏺'; document.getElementById('gpsTxt').textContent='INICIAR GRAVAÇÃO GPS'; }
+  document.getElementById('modeInd').textContent='NAVEGAÇÃO';
+  document.getElementById('modeInd').classList.remove('rec');
+}
+
+function updTimer(){
+  if(!gpsStart) return;
+  const s=Math.floor((Date.now()-gpsStart)/1000);
+  document.getElementById('vTime').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+function haversine(la1,lo1,la2,lo2){
+  const R=6371000,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ---- UNDO ----
+function undoPoint(){
+  if(!pts.length) return;
+  pts.pop();
+  const m=mks.pop(); if(m) map.removeLayer(m);
+  if(polyL){ map.removeLayer(polyL); polyL=null; }
+  if(polyG){ map.removeLayer(polyG); polyG=null; }
+  if(pts.length>=2) polyL=L.polyline(pts,{color:'#b8e04a',weight:2,dashArray:'6,4',opacity:.7}).addTo(map);
+  if(pts.length>=3){ calcArea(); drawPoly(true); } else { areaHa=0; updArea(); }
+  updPtsList(); updBtns();
+}
+
+// ---- CLEAR ----
+function clearAll(silent=false){
+  if(recording) stopGps();
+  drawing=false; pts=[];
+  mks.forEach(m=>map.removeLayer(m)); mks=[];
+  if(polyL){ map.removeLayer(polyL); polyL=null; }
+  if(polyG){ map.removeLayer(polyG); polyG=null; }
+  if(gpsTrail){ map.removeLayer(gpsTrail); gpsTrail=null; }
+  areaHa=0; updArea(); updPtsList(); updBtns();
+  if(!silent){
+    const btn=document.getElementById('btnDraw');
+    btn.textContent='✏️ Desenhar'; btn.style.background=''; btn.style.color='';
+    document.getElementById('modeInd').textContent='NAVEGAÇÃO';
+    document.getElementById('modeInd').classList.remove('rec');
+    map.getContainer().style.cursor='';
+    setTip('m','👆 Toque em "Desenhar" e clique no mapa para marcar os pontos');
+    setTip('g','🛰️ Caminhe pelo <strong>perímetro</strong> da área. O GPS registra automaticamente.');
+    document.getElementById('vPts').textContent='0';
+    document.getElementById('vDist').textContent='0';
+    document.getElementById('vTime').textContent='00:00';
+    document.getElementById('vAcc').textContent='—';
+  }
+}
+
+// ---- POLÍGONO ----
+function drawPoly(provisional){
+  if(polyG){ map.removeLayer(polyG); polyG=null; }
+  if(pts.length<3) return;
+  const isGps=curMode==='gps';
+  polyG=L.polygon(pts,{
+    color:isGps?'#4a9de0':'#b8e04a',
+    fillColor:isGps?'#1a4a7a':'#7aaa1a',
+    fillOpacity:provisional?.25:.35,
+    weight:provisional?2:3,
+    dashArray:provisional?'6,4':null
+  }).addTo(map);
+}
+
+// ---- CALC ÁREA ----
+function calcArea(){
+  if(pts.length<3) return;
+  const R=6371000; let area=0; const n=pts.length;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    const la1=pts[i][0]*Math.PI/180, la2=pts[j][0]*Math.PI/180;
+    const dlo=(pts[j][1]-pts[i][1])*Math.PI/180;
+    area+=dlo*(2+Math.sin(la1)+Math.sin(la2));
+  }
+  areaHa=Math.abs(area*R*R/2)/10000;
+  updArea(); calcProd();
+}
+
+function updArea(){
+  const alq=areaHa/2.42, m2=areaHa*10000;
+  document.getElementById('areaHa').textContent=areaHa.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('areaSub').textContent=`${alq.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} alq · ${m2.toLocaleString('pt-BR',{maximumFractionDigits:0})} m²`;
+  document.getElementById('rArea').textContent=`${areaHa.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} ha`;
+}
+
+// ---- PRODUTIVIDADE ----
+function calcProd(){
+  const raw=parseFloat(document.getElementById('pesoSoja').value)||0;
+  const un=document.getElementById('unid').value;
+  const um=parseFloat(document.getElementById('umid').value)||13;
+  let kg=un==='kg'?raw:un==='sc'?raw*60:raw*1000;
+  const base=kg*(1-um/100)/(1-13/100);
+  const sc=base/60, ha=areaHa;
+  const pSc=ha>0?sc/ha:0, pKg=ha>0?base/ha:0;
+
+  document.getElementById('rPeso').textContent=`${base.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg`;
+  document.getElementById('rSacas').textContent=`${sc.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} sc`;
+  document.getElementById('rProd').textContent=ha>0?`${pSc.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} sc/ha`:'—';
+  document.getElementById('rProdKg').textContent=ha>0?`${pKg.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg/ha`:'—';
+
+  let cl='—',cc='var(--text-dim)';
+  if(ha>0&&base>0){
+    if(pSc>=70){cl='🏆 Excelente (≥70 sc/ha)';cc='var(--lime)';}
+    else if(pSc>=55){cl='✅ Boa (55–70 sc/ha)';cc='var(--green)';}
+    else if(pSc>=40){cl='⚠️ Média (40–55 sc/ha)';cc='var(--amber)';}
+    else{cl='❌ Baixa (<40 sc/ha)';cc='var(--red)';}
+  }
+  document.getElementById('rClass').textContent=cl;
+  document.getElementById('rClass').style.color=cc;
+}
+
+// ---- SALVAR ----
+function salvar(){
+  if(!areaHa){ alert('Meça uma área antes de salvar!'); return; }
+  const nome=document.getElementById('talhaoName').value.trim()||`Talhão ${talhoes.length+1}`;
+  const raw=parseFloat(document.getElementById('pesoSoja').value)||0;
+  const un=document.getElementById('unid').value;
+  const um=parseFloat(document.getElementById('umid').value)||13;
+  let kg=un==='kg'?raw:un==='sc'?raw*60:raw*1000;
+  const base=kg*(1-um/100)/(1-13/100);
+  const sc=base/60, prodSc=areaHa>0?sc/areaHa:0;
+
+  talhoes.unshift({id:Date.now(),nome,ha:areaHa,pesoBase:base,sacas:sc,prodSacas:prodSc,pontos:[...pts],modo:curMode,data:new Date().toLocaleDateString('pt-BR')});
+  localStorage.setItem('agro_talhoes',JSON.stringify(talhoes));
+  renderHist();
+  clearAll();
+  document.getElementById('talhaoName').value='';
+  document.getElementById('pesoSoja').value='';
+  alert(`✅ Talhão "${nome}" salvo!`);
+}
+
+// ---- HISTÓRICO ----
+function renderHist(){
+  const el=document.getElementById('hist');
+  if(!talhoes.length){ el.innerHTML='<div class="empty">Nenhum talhão salvo ainda</div>'; return; }
+  el.innerHTML=talhoes.map(t=>`
+    <div class="hist-item">
+      <div style="flex:1;cursor:pointer" onclick="loadTalhao(${t.id})">
+        <div class="hist-name">${t.nome} ${t.modo==='gps'?'<span style="font-size:9px;color:var(--blue)">🛰GPS</span>':''}</div>
+        <div class="hist-meta">
+          <span>📐 ${t.ha.toFixed(2)} ha</span>
+          <span>🌱 ${t.prodSacas.toFixed(1)} sc/ha</span>
+          <span>📅 ${t.data}</span>
+        </div>
+      </div>
+      <button class="hist-del" onclick="delTalhao(${t.id})">🗑</button>
+    </div>`).join('');
+}
+
+function delTalhao(id){
+  if(!confirm('Excluir este talhão?')) return;
+  talhoes=talhoes.filter(t=>t.id!==id);
+  localStorage.setItem('agro_talhoes',JSON.stringify(talhoes));
+  renderHist();
+}
+
+function loadTalhao(id){
+  const t=talhoes.find(x=>x.id===id);
+  if(!t||t.pontos.length<3) return;
+  clearAll();
+  pts=[...t.pontos];
+  const isGps=t.modo==='gps';
+  pts.forEach((p,i)=>{
+    const mk=L.circleMarker(p,{radius:isGps?5:7,color:isGps?'#4a9de0':'#b8e04a',fillColor:isGps?'#4a9de0':'#b8e04a',fillOpacity:1,weight:2}).addTo(map);
+    if(!isGps) mk.bindTooltip(`P${i+1}`,{permanent:true,direction:'top',className:'ptlabel',offset:[0,-8]}).openTooltip();
+    mks.push(mk);
+  });
+  drawPoly(false); calcArea();
+  map.fitBounds(L.latLngBounds(pts),{padding:[40,40]});
+  document.getElementById('talhaoName').value=t.nome;
+  updPtsList(); updBtns();
+}
+
+// ---- UTILS ----
+function updPtsList(){
+  const el=document.getElementById('ptsList');
+  if(!pts.length){ el.innerHTML=''; return; }
+  el.innerHTML=`<div style="font-size:10px;color:var(--text-dim);margin-bottom:4px;font-family:'DM Mono',monospace">${pts.length} PONTO${pts.length!==1?'S':''} REGISTRADO${pts.length!==1?'S':''}</div>`+
+    pts.slice(-3).map((p,i)=>{
+      const idx=pts.length>3?pts.length-3+i:i;
+      return `<div class="pt-item"><span class="pt-num">P${idx+1}</span><span>${p[0].toFixed(5)}, ${p[1].toFixed(5)}</span></div>`;
+    }).join('')+(pts.length>3?`<div style="text-align:center;font-size:10px;color:var(--text-dim);font-family:'DM Mono'">+ ${pts.length-3} anteriores</div>`:'');
+}
+
+function updBtns(){
+  const u=document.getElementById('btnUndo');
+  const c=document.getElementById('btnClearM');
+  if(u) u.disabled=!pts.length;
+  if(c) c.disabled=!pts.length;
+}
+
+function setTip(which,msg){
+  const id=which==='m'?'tipM':'tipG';
+  const el=document.getElementById(id);
+  if(el) el.innerHTML=msg;
+}
+
+// INIT
+renderHist();
+if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],15),()=>{});
+
+// Verifica shortcut na URL
+(function(){
+  const params=new URLSearchParams(location.search);
+  const m=params.get('mode');
+  if(m==='gps'||m==='manual') switchMode(m);
+})();
+</script>
+
+<!-- ═══ PWA: Service Worker + Install Prompt ═══ -->
+<script>
+(function(){
+  // ---- Service Worker ----
+  if(!('serviceWorker' in navigator)) return;
+
+  let swReg = null;
+
+  navigator.serviceWorker.register('./sw.js', { scope: './' })
+    .then(reg => {
+      swReg = reg;
+      setPwaStatus('✓ offline');
+
+      // Detecta nova versão disponível
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if(newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            showToast('Nova versão disponível!', 'Atualizar', () => {
+              newSW.postMessage('SKIP_WAITING');
+            });
+          }
+        });
+      });
+
+      // Recarrega quando novo SW assume
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    })
+    .catch(err => console.warn('[PWA] SW erro:', err));
+
+  // ---- Install Prompt ----
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Não mostrar se já dispensou recentemente (7 dias)
+    const dismissed = parseInt(localStorage.getItem('pwa_dismissed') || '0');
+    if(Date.now() - dismissed > 7 * 86400000) {
+      // Pequeno delay para não sufocar o usuário ao abrir
+      setTimeout(() => {
+        document.getElementById('pwaInstallBanner').classList.add('show');
+      }, 3000);
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('pwaInstallBanner').classList.remove('show');
+    deferredPrompt = null;
+    setPwaStatus('instalado');
+    showToast('AgroPro instalado com sucesso! 🎉', 'OK');
+  });
+
+  window.pwaInstall = async function() {
+    if(!deferredPrompt) return;
+    document.getElementById('pwaInstallBanner').classList.remove('show');
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if(outcome === 'accepted') setPwaStatus('instalando…');
+  };
+
+  window.pwaDismiss = function() {
+    document.getElementById('pwaInstallBanner').classList.remove('show');
+    localStorage.setItem('pwa_dismissed', Date.now().toString());
+  };
+
+  // ---- Toast helper ----
+  function showToast(msg, btnLabel, onClick) {
+    const toast = document.getElementById('pwaToast');
+    document.getElementById('pwaToastMsg').textContent = msg;
+    const btn = document.getElementById('pwaToastBtn');
+    btn.textContent = btnLabel || 'OK';
+    btn.onclick = () => {
+      toast.classList.remove('show');
+      if(onClick) onClick();
+    };
+    toast.classList.add('show');
+    if(!onClick) setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  // ---- Status no header ----
+  function setPwaStatus(txt) {
+    const el = document.getElementById('pwaStatus');
+    if(el) el.textContent = txt;
+  }
+
+  // Detecta se já está instalado (standalone)
+  if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    setPwaStatus('instalado');
+  }
+})();
+</script>
+</body>
+</html>
