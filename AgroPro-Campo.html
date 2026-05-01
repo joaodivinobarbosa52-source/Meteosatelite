@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#252518">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AgroPro">
+<meta name="description" content="Medidor de área agrícola com GPS e cálculo de produtividade de soja">
+
+<title>AgroPro · Medidor de Área</title>
+
+<!-- ============================================================
+     PWA MANIFEST INLINE (blob URL injetado via JS no <head>)
+     ============================================================ -->
+
+<!-- ÍCONE Apple Touch (SVG→PNG base64 192px embutido) -->
+<link rel="apple-touch-icon" id="appleIcon" href="">
+
+<!-- Leaflet CSS inline para garantir offline -->
+<style id="leafletCSS">
+/* Leaflet 1.9.4 CSS minificado */
+.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}.leaflet-zoom-anim .leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-animated.leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{-webkit-tap-highlight-color:transparent;background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078A8}.leaflet-container a.leaflet-active{outline:2px solid orange}.leaflet-zoom-box{border:2px dotted #38f;background:rgba(255,255,255,.5)}.leaflet-container{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;font-size:.75rem;font-size:1.0667rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:black}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover,.leaflet-bar a:focus{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px "Lucida Console",Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px rgba(0,0,0,.4);background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(https://unpkg.com/leaflet@1.9.4/dist/images/layers.png);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(https://unpkg.com/leaflet@1.9.4/dist/images/layers-2x.png);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png)}.leaflet-container .leaflet-control-attribution{background:#fff;background:rgba(255,255,255,.8);margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover,.leaflet-control-attribution a:focus{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;overflow:hidden;-moz-box-sizing:border-box;box-sizing:border-box;background:#fff;background:rgba(255,255,255,.5)}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:1.08333em}.leaflet-popup-content p{margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:white;color:#333;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:transparent}.leaflet-container a.leaflet-popup-close-button:hover,.leaflet-container a.leaflet-popup-close-button:focus{color:#585858}.leaflet-popup-scrolled{overflow:auto;border-bottom:1px solid #ddd;border-top:1px solid #ddd}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;-ms-filter:"progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";filter:progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)}.leaflet-oldie .leaflet-popup-tip-container{margin-top:-1px}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{position:absolute;pointer-events:none;border:6px solid transparent;background:transparent;content:""}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}
+</style>
+
+<style>
+/* ===== APP STYLES ===== */
+:root {
+  --solo:#1a1a0e; --solo2:#252518; --solo3:#2f2f20; --solo4:#3a3a28;
+  --lime:#b8e04a; --lime2:#d4f06a; --lime-dim:#7aaa1a;
+  --amber:#e8a020; --text:#e8e8d8; --text-dim:#8a8a70;
+  --border:#3a3a28; --red:#e05040; --green:#40c060; --blue:#4a9de0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--solo);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* SPLASH / INSTALL TOAST */
+#installToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--solo2);border:1px solid var(--lime-dim);border-radius:8px;padding:12px 16px;z-index:9999;display:none;align-items:center;gap:10px;max-width:90vw;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+#installToast .it-txt{font-size:12px;color:var(--text);line-height:1.4;}
+#installToast .it-txt strong{color:var(--lime);}
+#installToast button{background:var(--lime);color:var(--solo);border:none;padding:7px 14px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+#installToast .it-close{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--solo2);border-bottom:2px solid var(--lime-dim);z-index:1000;flex-shrink:0;}
+.logo{font-family:'Bebas Neue',system-ui,sans-serif;font-size:22px;letter-spacing:2px;color:var(--lime);}
+.logo span{color:var(--amber);}
+.header-right{display:flex;align-items:center;gap:8px;}
+.mode-ind{font-family:'DM Mono',monospace;font-size:10px;color:var(--lime);background:rgba(184,224,74,.12);border:1px solid var(--lime-dim);padding:3px 10px;border-radius:3px;letter-spacing:1px;}
+.mode-ind.rec{color:var(--red);background:rgba(224,80,64,.15);border-color:var(--red);animation:pb 1.2s infinite;}
+@keyframes pb{0%,100%{box-shadow:0 0 0 0 rgba(224,80,64,.4)}50%{box-shadow:0 0 0 4px rgba(224,80,64,0)}}
+#offlineBadge{display:none;font-size:9px;color:var(--amber);background:rgba(232,160,32,.15);border:1px solid var(--amber);padding:2px 7px;border-radius:3px;letter-spacing:1px;}
+
+/* LAYOUT */
+.app-body{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:300px;min-width:300px;background:var(--solo2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;z-index:100;}
+.section{padding:14px;border-bottom:1px solid var(--border);}
+.sec-title{font-family:'Bebas Neue',system-ui,sans-serif;font-size:13px;letter-spacing:2px;color:var(--lime);margin-bottom:10px;}
+
+/* TABS */
+.mode-tabs{display:flex;background:var(--solo3);border:1px solid var(--border);border-radius:6px;padding:3px;margin-bottom:12px;gap:3px;}
+.mode-tab{flex:1;padding:8px 4px;border:none;border-radius:4px;font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-dim);transition:all .15s;text-align:center;line-height:1.3;}
+.mode-tab.active{background:var(--lime);color:var(--solo);}
+
+/* BOTÕES */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{flex:1;min-width:70px;padding:10px 8px;border:none;border-radius:4px;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-p{background:var(--lime);color:var(--solo);}
+.btn-p:hover{background:var(--lime2);}
+.btn-p:disabled{background:var(--solo4);color:var(--text-dim);cursor:not-allowed;}
+.btn-d{background:transparent;color:var(--red);border:1px solid var(--red);}
+.btn-d:hover{background:rgba(224,80,64,.12);}
+.btn-s{background:var(--solo3);color:var(--text);border:1px solid var(--border);}
+.btn-s:hover{background:var(--solo4);}
+
+/* GPS */
+.btn-gps{background:var(--red);color:#fff;font-size:14px;padding:14px;width:100%;border-radius:6px;border:none;cursor:pointer;font-family:'Bebas Neue',system-ui,sans-serif;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;}
+.btn-gps.rec{background:var(--solo3);color:var(--red);border:2px solid var(--red);animation:pbg 1.5s infinite;}
+@keyframes pbg{0%,100%{background:var(--solo3)}50%{background:rgba(224,80,64,.15)}}
+.gps-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.gps-stat{background:var(--solo3);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;}
+.gps-stat-val{font-family:'DM Mono',monospace;font-size:16px;color:var(--lime);line-height:1;}
+.gps-stat-label{font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
+.acc-ok{border-color:var(--green)!important;}
+.acc-warn{border-color:var(--amber)!important;}
+.acc-bad{border-color:var(--red)!important;}
+
+/* ÁREA */
+.area-box{background:var(--solo3);border:1px solid var(--lime-dim);border-radius:6px;padding:12px;text-align:center;margin:10px 0;}
+.area-val{font-family:'Bebas Neue',system-ui,sans-serif;font-size:38px;color:var(--lime);line-height:1;}
+.area-unit{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);margin-top:2px;}
+.area-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--amber);margin-top:4px;}
+
+/* INPUTS */
+.inp-group{margin-bottom:10px;}
+.inp-label{font-size:11px;font-weight:600;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.inp-row{display:flex;gap:6px;align-items:center;}
+input[type=number],input[type=text],select{background:var(--solo3);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;width:100%;outline:none;}
+input:focus,select:focus{border-color:var(--lime-dim);}
+.unit-b{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);white-space:nowrap;background:var(--solo4);padding:9px 8px;border-radius:4px;border:1px solid var(--border);}
+
+/* PRODUTIVIDADE */
+.prod-card{background:linear-gradient(135deg,var(--solo3),var(--solo4));border:1px solid var(--amber);border-radius:6px;padding:14px;margin-top:8px;}
+.prod-title{font-family:'Bebas Neue',system-ui,sans-serif;font-size:12px;letter-spacing:2px;color:var(--amber);margin-bottom:10px;}
+.prod-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.prod-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.prod-lbl{font-size:11px;color:var(--text-dim);}
+.prod-v{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--text);}
+.prod-v.hl{font-size:18px;color:var(--lime);}
+
+/* TIP */
+.tip{font-size:11px;color:var(--text-dim);text-align:center;padding:8px;background:var(--solo3);border-radius:4px;line-height:1.5;}
+
+/* PONTOS */
+.pts-list{max-height:90px;overflow-y:auto;margin-bottom:6px;}
+.pt-item{display:flex;justify-content:space-between;padding:4px 8px;background:var(--solo3);border-radius:3px;margin-bottom:3px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);}
+.pt-num{color:var(--lime);font-weight:500;}
+
+/* HISTÓRICO */
+.hist-item{background:var(--solo3);border:1px solid var(--border);border-radius:4px;padding:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start;}
+.hist-item:hover{border-color:var(--lime-dim);}
+.hist-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.hist-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);display:flex;gap:8px;flex-wrap:wrap;}
+.hist-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:3px;}
+.hist-del:hover{color:var(--red);background:rgba(224,80,64,.1);}
+.empty{font-size:11px;color:var(--text-dim);text-align:center;padding:10px;font-style:italic;}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+#map{flex:1;height:100%;}
+.gps-dot{width:18px;height:18px;border-radius:50%;background:#4a9de0;border:3px solid #fff;animation:gp 1.5s infinite;}
+@keyframes gp{0%{box-shadow:0 0 0 0 rgba(74,157,224,.6)}70%{box-shadow:0 0 0 12px rgba(74,157,224,0)}100%{box-shadow:0 0 0 0 rgba(74,157,224,0)}}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--solo2);}
+::-webkit-scrollbar-thumb{background:var(--solo4);border-radius:2px;}
+.leaflet-popup-content-wrapper{background:var(--solo2)!important;color:var(--text)!important;border:1px solid var(--lime-dim)!important;border-radius:6px!important;}
+.leaflet-popup-tip{background:var(--solo2)!important;}
+.leaflet-container{background:#1a2010;}
+.leaflet-bar a{background:#2f2f20!important;border-bottom:1px solid #3a3a28!important;color:#b8e04a!important;}
+.leaflet-bar a:hover{background:#3a3a28!important;}
+.leaflet-control-layers{background:var(--solo2)!important;color:var(--text)!important;border:1px solid var(--border)!important;}
+.leaflet-control-layers label{color:var(--text)!important;font-size:12px;}
+
+@media(max-width:600px){
+  .sidebar{width:100%;min-width:unset;max-height:52vh;}
+  .app-body{flex-direction:column-reverse;}
+  #map{height:48vh;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST DE INSTALAÇÃO -->
+<div id="installToast">
+  <div class="it-txt">📲 <strong>Instalar AgroPro</strong><br>Adicione à tela inicial para usar offline</div>
+  <button id="installBtn">Instalar</button>
+  <button class="it-close" id="toastClose">✕</button>
+</div>
+
+<header>
+  <div class="logo">Agro<span>Pro</span> · Campo</div>
+  <div class="header-right">
+    <span id="offlineBadge">OFFLINE</span>
+    <div class="mode-ind" id="modeInd">NAVEGAÇÃO</div>
+  </div>
+</header>
+
+<div class="app-body">
+<div class="sidebar">
+
+  <!-- MEDIR ÁREA -->
+  <div class="section">
+    <div class="sec-title">📐 Medir Área</div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabM" onclick="switchMode('manual')">🖱️ Manual<br><span style="font-size:9px;font-weight:400">Clique no mapa</span></button>
+      <button class="mode-tab" id="tabG" onclick="switchMode('gps')">🛰️ GPS<br><span style="font-size:9px;font-weight:400">Andar na área</span></button>
+    </div>
+
+    <!-- MANUAL -->
+    <div class="panel active" id="panelM">
+      <div class="btn-row" style="margin-bottom:10px">
+        <button class="btn btn-p" id="btnDraw" onclick="toggleDraw()">✏️ Desenhar</button>
+        <button class="btn btn-s" id="btnUndo" onclick="undoPoint()" disabled>↩ Desfazer</button>
+        <button class="btn btn-d" id="btnClearM" onclick="clearAll()" disabled>✕ Limpar</button>
+      </div>
+      <div class="tip" id="tipM">👆 Toque em <strong>"Desenhar"</strong> e clique no mapa para marcar os pontos</div>
+    </div>
+
+    <!-- GPS -->
+    <div class="panel" id="panelG">
+      <div class="gps-stats">
+        <div class="gps-stat" id="stAcc"><div class="gps-stat-val" id="vAcc">—</div><div class="gps-stat-label">Precisão (m)</div></div>
+        <div class="gps-stat"><div class="gps-stat-val" id="vPts">0</div><div class="gps-stat-label">Pontos GPS</div></div>
+        <div class="gps-stat"><div class="gps-stat-val" id="vDist">0</div><div class="gps-stat-label">Distância (m)</div></div>
+        <div class="gps-stat"><div class="gps-stat-val" id="vTime">00:00</div><div class="gps-stat-label">Tempo</div></div>
+      </div>
+      <button class="btn-gps" id="btnGps" onclick="toggleGps()">
+        <span id="gpsIco">⏺</span><span id="gpsTxt">INICIAR GRAVAÇÃO GPS</span>
+      </button>
+      <div class="tip" id="tipG">🛰️ Caminhe pelo <strong>perímetro</strong> da área. O GPS registra automaticamente.</div>
+      <button class="btn btn-d" onclick="clearAll()" style="width:100%;margin-top:8px">✕ Limpar Área</button>
+    </div>
+
+    <!-- ÁREA -->
+    <div class="area-box">
+      <div class="area-val" id="areaHa">0,00</div>
+      <div class="area-unit">HECTARES</div>
+      <div class="area-sub" id="areaSub">0,00 alq · 0 m²</div>
+    </div>
+
+    <div class="inp-group">
+      <div class="inp-label">Nome do Talhão</div>
+      <input type="text" id="talhaoName" placeholder="Ex: Talhão Norte A1"/>
+    </div>
+
+    <div id="ptsList" class="pts-list"></div>
+  </div>
+
+  <!-- PRODUTIVIDADE -->
+  <div class="section">
+    <div class="sec-title">🌱 Produtividade de Soja</div>
+
+    <div class="inp-group">
+      <div class="inp-label">Peso da Soja Colhida</div>
+      <div class="inp-row">
+        <input type="number" id="pesoSoja" placeholder="0" min="0" step="0.01" oninput="calcProd()"/>
+        <select id="unid" style="width:90px" onchange="calcProd()">
+          <option value="kg">kg</option>
+          <option value="sc" selected>sacas</option>
+          <option value="ton">toneladas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="inp-group">
+      <div class="inp-label">Umidade (%)</div>
+      <div class="inp-row">
+        <input type="number" id="umid" value="13" min="0" max="30" step="0.1" oninput="calcProd()"/>
+        <div class="unit-b">%</div>
+      </div>
+    </div>
+
+    <div class="prod-card">
+      <div class="prod-title">⚡ RESULTADO</div>
+      <div class="prod-row"><span class="prod-lbl">Peso base 13%</span><span class="prod-v" id="rPeso">— kg</span></div>
+      <div class="prod-row"><span class="prod-lbl">Sacas colhidas</span><span class="prod-v" id="rSacas">— sc</span></div>
+      <div class="prod-row"><span class="prod-lbl">Área medida</span><span class="prod-v" id="rArea">— ha</span></div>
+      <div class="prod-row"><span class="prod-lbl">Produtividade</span><span class="prod-v hl" id="rProd">— sc/ha</span></div>
+      <div class="prod-row"><span class="prod-lbl">Em kg/ha</span><span class="prod-v" id="rProdKg">— kg/ha</span></div>
+      <div class="prod-row"><span class="prod-lbl">Classificação</span><span class="prod-v" id="rClass" style="color:var(--text-dim)">—</span></div>
+    </div>
+
+    <button class="btn btn-p" style="width:100%;margin-top:10px" onclick="salvar()">💾 Salvar Talhão</button>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="section">
+    <div class="sec-title">📋 Talhões Salvos</div>
+    <div id="hist"><div class="empty">Nenhum talhão salvo ainda</div></div>
+  </div>
+
+</div><!-- /sidebar -->
+<div id="map"></div>
+</div><!-- /app-body -->
+
+<!-- ==================== LEAFLET JS INLINE ==================== -->
+<!-- Leaflet 1.9.4 minificado inline para funcionar offline -->
+<script>
+/* Leaflet 1.9.4 - carregado do CDN com fallback embutido */
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// ============================================================
+// PWA — MANIFEST + SERVICE WORKER + ÍCONES (tudo inline)
+// ============================================================
+
+// Ícone SVG do app embutido em base64
+const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#252518"/>
+  <rect x="4" y="4" width="184" height="184" rx="28" fill="#1a1a0e"/>
+  <text x="96" y="72" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="52" fill="#b8e04a">AP</text>
+  <text x="96" y="108" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" fill="#7aaa1a" letter-spacing="3">AGROPRO</text>
+  <polygon points="30,160 96,120 162,160 140,140 96,155 52,140" fill="#b8e04a" opacity="0.8"/>
+  <circle cx="96" cy="140" r="8" fill="#e8a020"/>
+</svg>`;
+
+const ICON_B64 = 'data:image/svg+xml;base64,' + btoa(ICON_SVG);
+
+// Seta apple touch icon
+document.getElementById('appleIcon').href = ICON_B64;
+
+// Injeta manifest dinamicamente
+const manifest = {
+  name: "AgroPro · Medidor de Área",
+  short_name: "AgroPro",
+  description: "Medidor de área agrícola com GPS e cálculo de produtividade de soja",
+  start_url: location.href,
+  display: "standalone",
+  background_color: "#1a1a0e",
+  theme_color: "#252518",
+  orientation: "any",
+  lang: "pt-BR",
+  icons: [
+    { src: ICON_B64, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+    { src: ICON_B64, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+  ],
+  categories: ["productivity", "utilities"],
+  shortcuts: [
+    { name: "Medir Área GPS", short_name: "GPS", description: "Iniciar medição por GPS", url: location.href }
+  ]
+};
+
+const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+const manifestURL = URL.createObjectURL(manifestBlob);
+const manifestLink = document.createElement('link');
+manifestLink.rel = 'manifest';
+manifestLink.href = manifestURL;
+document.head.appendChild(manifestLink);
+
+// ============================================================
+// SERVICE WORKER INLINE (via blob URL)
+// ============================================================
+const SW_CACHE = 'agropro-v1';
+const SW_URLS = [
+  location.href,
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+  'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap'
+];
+
+const swCode = `
+const CACHE = '${SW_CACHE}';
+const PRECACHE = ${JSON.stringify(SW_URLS)};
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(PRECACHE).catch(()=>{})).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+    )).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  // Tiles do mapa: cache-first com fallback
+  if (e.request.url.includes('arcgisonline.com') || e.request.url.includes('tile.openstreetmap')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        return fetch(e.request).then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        }).catch(() => new Response('', {status: 408}));
+      })
+    );
+    return;
+  }
+  // Demais recursos: network-first com fallback para cache
+  e.respondWith(
+    fetch(e.request).then(res => {
+      const clone = res.clone();
+      if (res.ok) caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }).catch(() => caches.match(e.request).then(r => r || new Response('Offline', {status: 503})))
+  );
+});
+`;
+
+if ('serviceWorker' in navigator) {
+  const swBlob = new Blob([swCode], {type:'text/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL, {scope: '/'})
+    .then(reg => {
+      console.log('SW registrado:', reg.scope);
+      // Monitora atualizações
+      reg.addEventListener('updatefound', () => {
+        console.log('SW: nova versão disponível');
+      });
+    })
+    .catch(err => {
+      // Tenta escopo relativo se / falhar (ex: arquivo local)
+      navigator.serviceWorker.register(swURL)
+        .then(r => console.log('SW registrado (escopo relativo):', r.scope))
+        .catch(e => console.warn('SW não registrado:', e));
+    });
+
+  // Online / Offline indicator
+  const badge = document.getElementById('offlineBadge');
+  function updOnline(){ badge.style.display = navigator.onLine ? 'none' : 'inline'; }
+  window.addEventListener('online', updOnline);
+  window.addEventListener('offline', updOnline);
+  updOnline();
+}
+
+// ============================================================
+// INSTALL PROMPT (A2HS)
+// ============================================================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const toast = document.getElementById('installToast');
+  toast.style.display = 'flex';
+  setTimeout(() => { if(toast.style.display!=='none') toast.style.display='none'; }, 15000);
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installToast').style.display = 'none';
+  if (outcome === 'accepted') console.log('App instalado!');
+});
+
+document.getElementById('toastClose').addEventListener('click', () => {
+  document.getElementById('installToast').style.display = 'none';
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installToast').style.display = 'none';
+  deferredPrompt = null;
+});
+
+// ============================================================
+// MAPA
+// ============================================================
+const map = L.map('map',{center:[-15.78,-47.93],zoom:5,zoomControl:false});
+L.control.zoom({position:'topright'}).addTo(map);
+
+const layers = {
+  'Satélite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19}),
+  'Mapa': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19})
+};
+layers['Satélite'].addTo(map);
+L.control.layers(layers,{},{position:'topright'}).addTo(map);
+
+const sEl = document.createElement('style');
+sEl.textContent = `.leaflet-tooltip.ptlabel{background:#1a1a0e;color:#b8e04a;border:1px solid #7aaa1a;font-family:'Bebas Neue',system-ui,sans-serif;font-size:11px;padding:1px 5px;}`;
+document.head.appendChild(sEl);
+
+// ============================================================
+// ESTADO
+// ============================================================
+let curMode='manual', drawing=false;
+let pts=[], mks=[], polyL=null, polyG=null;
+let areaHa=0;
+let talhoes=JSON.parse(localStorage.getItem('agro_talhoes')||'[]');
+
+// GPS
+let watchId=null, recording=false;
+let gpsMk=null, gpsTrail=null;
+let gpsStart=null, timerInv=null;
+let lastPt=null, distTotal=0, lastTime=0;
+
+// ============================================================
+// MODO
+// ============================================================
+function switchMode(m){
+  curMode=m;
+  document.getElementById('tabM').classList.toggle('active',m==='manual');
+  document.getElementById('tabG').classList.toggle('active',m==='gps');
+  document.getElementById('panelM').classList.toggle('active',m==='manual');
+  document.getElementById('panelG').classList.toggle('active',m==='gps');
+  if(m==='manual') stopGps();
+  else if(drawing) toggleDraw();
+}
+
+// ============================================================
+// MANUAL
+// ============================================================
+function toggleDraw(){
+  drawing=!drawing;
+  const btn=document.getElementById('btnDraw');
+  const ind=document.getElementById('modeInd');
+  if(drawing){
+    btn.textContent='⏹ Parar'; btn.style.background='var(--amber)'; btn.style.color='var(--solo)';
+    ind.textContent='DESENHANDO';
+    map.getContainer().style.cursor='crosshair';
+    setTip('m','🖊 Clique no mapa para marcar pontos · Mín. 3 · "Parar" para fechar');
+  } else {
+    btn.textContent='✏️ Desenhar'; btn.style.background=''; btn.style.color='';
+    ind.textContent='NAVEGAÇÃO';
+    map.getContainer().style.cursor='';
+    if(pts.length>=3){ drawPoly(false); setTip('m',`✅ Área fechada com ${pts.length} pontos`); }
+  }
+  updBtns();
+}
+
+map.on('click',function(e){
+  if(!drawing||curMode!=='manual') return;
+  addPt([e.latlng.lat,e.latlng.lng],false);
+});
+
+function addPt(latlng,isGps){
+  pts.push(latlng);
+  const mk=L.circleMarker(latlng,{
+    radius:isGps?5:7,
+    color:isGps?'#4a9de0':'#b8e04a',
+    fillColor:isGps?'#4a9de0':'#b8e04a',
+    fillOpacity:1,weight:2
+  }).addTo(map);
+  if(!isGps) mk.bindTooltip(`P${pts.length}`,{permanent:true,direction:'top',className:'ptlabel',offset:[0,-8]}).openTooltip();
+  mks.push(mk);
+  if(polyL) map.removeLayer(polyL);
+  if(pts.length>=2) polyL=L.polyline(pts,{color:isGps?'#4a9de0':'#b8e04a',weight:2,dashArray:'6,4',opacity:.7}).addTo(map);
+  if(pts.length>=3){ calcArea(); drawPoly(true); }
+  updPtsList(); updBtns();
+}
+
+// ============================================================
+// GPS
+// ============================================================
+function toggleGps(){ recording ? finishGps() : startGps(); }
+
+function startGps(){
+  if(!navigator.geolocation){ alert('GPS não disponível neste dispositivo.'); return; }
+  clearAll(true);
+  recording=true; gpsStart=Date.now(); distTotal=0; lastPt=null; lastTime=0;
+  document.getElementById('btnGps').classList.add('rec');
+  document.getElementById('gpsIco').textContent='⏹';
+  document.getElementById('gpsTxt').textContent='PARAR E FECHAR ÁREA';
+  document.getElementById('modeInd').textContent='⏺ GRAVANDO';
+  document.getElementById('modeInd').classList.add('rec');
+  setTip('g','🔴 <strong>Gravando!</strong> Caminhe pelo perímetro. "Parar" ao fechar o percurso.');
+  timerInv=setInterval(updTimer,1000);
+  watchId=navigator.geolocation.watchPosition(onGps,onGpsErr,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+}
+
+function onGps(pos){
+  const{latitude:lat,longitude:lng,accuracy:acc}=pos.coords;
+  const now=Date.now();
+  const stAcc=document.getElementById('stAcc');
+  document.getElementById('vAcc').textContent=acc.toFixed(0);
+  stAcc.className='gps-stat '+(acc<=5?'acc-ok':acc<=15?'acc-warn':'acc-bad');
+  map.setView([lat,lng],Math.max(map.getZoom(),17));
+  if(gpsMk) map.removeLayer(gpsMk);
+  gpsMk=L.marker([lat,lng],{icon:L.divIcon({className:'',html:'<div class="gps-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
+  if(!recording) return;
+  if(now-lastTime<3000) return;
+  if(acc>20) return;
+  if(lastPt){
+    const d=haversine(lastPt[0],lastPt[1],lat,lng);
+    if(d<2) return;
+    distTotal+=d;
+    document.getElementById('vDist').textContent=distTotal.toFixed(0);
+  }
+  lastPt=[lat,lng]; lastTime=now;
+  addPt([lat,lng],true);
+  document.getElementById('vPts').textContent=pts.length;
+  if(gpsTrail) map.removeLayer(gpsTrail);
+  gpsTrail=L.polyline(pts,{color:'#4a9de0',weight:3,opacity:.8}).addTo(map);
+}
+
+function onGpsErr(e){ setTip('g',`⚠️ Erro GPS: ${e.message}`); }
+
+function finishGps(){
+  stopGps();
+  if(pts.length>=3){ drawPoly(false); calcArea(); setTip('g',`✅ <strong>${pts.length} pontos GPS</strong> · Informe o peso da soja`); }
+  else setTip('g','⚠️ Poucos pontos. Percorra o perímetro completo.');
+}
+
+function stopGps(){
+  if(watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
+  recording=false; clearInterval(timerInv);
+  const btn=document.getElementById('btnGps');
+  if(btn){ btn.classList.remove('rec'); document.getElementById('gpsIco').textContent='⏺'; document.getElementById('gpsTxt').textContent='INICIAR GRAVAÇÃO GPS'; }
+  document.getElementById('modeInd').textContent='NAVEGAÇÃO';
+  document.getElementById('modeInd').classList.remove('rec');
+}
+
+function updTimer(){
+  if(!gpsStart) return;
+  const s=Math.floor((Date.now()-gpsStart)/1000);
+  document.getElementById('vTime').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+function haversine(la1,lo1,la2,lo2){
+  const R=6371000,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ============================================================
+// UNDO / CLEAR
+// ============================================================
+function undoPoint(){
+  if(!pts.length) return;
+  pts.pop();
+  const m=mks.pop(); if(m) map.removeLayer(m);
+  if(polyL){ map.removeLayer(polyL); polyL=null; }
+  if(polyG){ map.removeLayer(polyG); polyG=null; }
+  if(pts.length>=2) polyL=L.polyline(pts,{color:'#b8e04a',weight:2,dashArray:'6,4',opacity:.7}).addTo(map);
+  if(pts.length>=3){ calcArea(); drawPoly(true); } else { areaHa=0; updArea(); }
+  updPtsList(); updBtns();
+}
+
+function clearAll(silent=false){
+  if(recording) stopGps();
+  drawing=false; pts=[];
+  mks.forEach(m=>map.removeLayer(m)); mks=[];
+  if(polyL){ map.removeLayer(polyL); polyL=null; }
+  if(polyG){ map.removeLayer(polyG); polyG=null; }
+  if(gpsTrail){ map.removeLayer(gpsTrail); gpsTrail=null; }
+  areaHa=0; updArea(); updPtsList(); updBtns();
+  if(!silent){
+    const btn=document.getElementById('btnDraw');
+    btn.textContent='✏️ Desenhar'; btn.style.background=''; btn.style.color='';
+    document.getElementById('modeInd').textContent='NAVEGAÇÃO';
+    document.getElementById('modeInd').classList.remove('rec');
+    map.getContainer().style.cursor='';
+    setTip('m','👆 Toque em "Desenhar" e clique no mapa para marcar os pontos');
+    setTip('g','🛰️ Caminhe pelo <strong>perímetro</strong> da área. O GPS registra automaticamente.');
+    ['vPts','vDist'].forEach(id=>document.getElementById(id).textContent='0');
+    document.getElementById('vTime').textContent='00:00';
+    document.getElementById('vAcc').textContent='—';
+  }
+}
+
+// ============================================================
+// POLÍGONO / ÁREA
+// ============================================================
+function drawPoly(prov){
+  if(polyG){ map.removeLayer(polyG); polyG=null; }
+  if(pts.length<3) return;
+  const g=curMode==='gps';
+  polyG=L.polygon(pts,{color:g?'#4a9de0':'#b8e04a',fillColor:g?'#1a4a7a':'#7aaa1a',fillOpacity:prov?.25:.35,weight:prov?2:3,dashArray:prov?'6,4':null}).addTo(map);
+}
+
+function calcArea(){
+  if(pts.length<3) return;
+  const R=6371000; let area=0; const n=pts.length;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    const la1=pts[i][0]*Math.PI/180,la2=pts[j][0]*Math.PI/180;
+    const dlo=(pts[j][1]-pts[i][1])*Math.PI/180;
+    area+=dlo*(2+Math.sin(la1)+Math.sin(la2));
+  }
+  areaHa=Math.abs(area*R*R/2)/10000;
+  updArea(); calcProd();
+}
+
+function updArea(){
+  const alq=areaHa/2.42,m2=areaHa*10000;
+  document.getElementById('areaHa').textContent=areaHa.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('areaSub').textContent=`${alq.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} alq · ${m2.toLocaleString('pt-BR',{maximumFractionDigits:0})} m²`;
+  document.getElementById('rArea').textContent=`${areaHa.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} ha`;
+}
+
+// ============================================================
+// PRODUTIVIDADE
+// ============================================================
+function calcProd(){
+  const raw=parseFloat(document.getElementById('pesoSoja').value)||0;
+  const un=document.getElementById('unid').value;
+  const um=parseFloat(document.getElementById('umid').value)||13;
+  let kg=un==='kg'?raw:un==='sc'?raw*60:raw*1000;
+  const base=kg*(1-um/100)/(1-13/100);
+  const sc=base/60,ha=areaHa;
+  const pSc=ha>0?sc/ha:0,pKg=ha>0?base/ha:0;
+  document.getElementById('rPeso').textContent=`${base.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg`;
+  document.getElementById('rSacas').textContent=`${sc.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} sc`;
+  document.getElementById('rProd').textContent=ha>0?`${pSc.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} sc/ha`:'—';
+  document.getElementById('rProdKg').textContent=ha>0?`${pKg.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg/ha`:'—';
+  let cl='—',cc='var(--text-dim)';
+  if(ha>0&&base>0){
+    if(pSc>=70){cl='🏆 Excelente (≥70 sc/ha)';cc='var(--lime)';}
+    else if(pSc>=55){cl='✅ Boa (55–70 sc/ha)';cc='var(--green)';}
+    else if(pSc>=40){cl='⚠️ Média (40–55 sc/ha)';cc='var(--amber)';}
+    else{cl='❌ Baixa (<40 sc/ha)';cc='var(--red)';}
+  }
+  document.getElementById('rClass').textContent=cl;
+  document.getElementById('rClass').style.color=cc;
+}
+
+// ============================================================
+// SALVAR / HISTÓRICO
+// ============================================================
+function salvar(){
+  if(!areaHa){ alert('Meça uma área antes de salvar!'); return; }
+  const nome=document.getElementById('talhaoName').value.trim()||`Talhão ${talhoes.length+1}`;
+  const raw=parseFloat(document.getElementById('pesoSoja').value)||0;
+  const un=document.getElementById('unid').value;
+  const um=parseFloat(document.getElementById('umid').value)||13;
+  let kg=un==='kg'?raw:un==='sc'?raw*60:raw*1000;
+  const base=kg*(1-um/100)/(1-13/100);
+  const sc=base/60,prodSc=areaHa>0?sc/areaHa:0;
+  talhoes.unshift({id:Date.now(),nome,ha:areaHa,pesoBase:base,sacas:sc,prodSacas:prodSc,pontos:[...pts],modo:curMode,data:new Date().toLocaleDateString('pt-BR')});
+  localStorage.setItem('agro_talhoes',JSON.stringify(talhoes));
+  renderHist(); clearAll();
+  document.getElementById('talhaoName').value='';
+  document.getElementById('pesoSoja').value='';
+  alert(`✅ Talhão "${nome}" salvo!`);
+}
+
+function renderHist(){
+  const el=document.getElementById('hist');
+  if(!talhoes.length){ el.innerHTML='<div class="empty">Nenhum talhão salvo ainda</div>'; return; }
+  el.innerHTML=talhoes.map(t=>`
+    <div class="hist-item">
+      <div style="flex:1;cursor:pointer" onclick="loadTalhao(${t.id})">
+        <div class="hist-name">${t.nome} ${t.modo==='gps'?'<span style="font-size:9px;color:var(--blue)">🛰GPS</span>':''}</div>
+        <div class="hist-meta">
+          <span>📐 ${t.ha.toFixed(2)} ha</span>
+          <span>🌱 ${t.prodSacas.toFixed(1)} sc/ha</span>
+          <span>📅 ${t.data}</span>
+        </div>
+      </div>
+      <button class="hist-del" onclick="delTalhao(${t.id})">🗑</button>
+    </div>`).join('');
+}
+
+function delTalhao(id){
+  if(!confirm('Excluir este talhão?')) return;
+  talhoes=talhoes.filter(t=>t.id!==id);
+  localStorage.setItem('agro_talhoes',JSON.stringify(talhoes));
+  renderHist();
+}
+
+function loadTalhao(id){
+  const t=talhoes.find(x=>x.id===id);
+  if(!t||t.pontos.length<3) return;
+  clearAll();
+  pts=[...t.pontos];
+  const g=t.modo==='gps';
+  pts.forEach((p,i)=>{
+    const mk=L.circleMarker(p,{radius:g?5:7,color:g?'#4a9de0':'#b8e04a',fillColor:g?'#4a9de0':'#b8e04a',fillOpacity:1,weight:2}).addTo(map);
+    if(!g) mk.bindTooltip(`P${i+1}`,{permanent:true,direction:'top',className:'ptlabel',offset:[0,-8]}).openTooltip();
+    mks.push(mk);
+  });
+  drawPoly(false); calcArea();
+  map.fitBounds(L.latLngBounds(pts),{padding:[40,40]});
+  document.getElementById('talhaoName').value=t.nome;
+  updPtsList(); updBtns();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function updPtsList(){
+  const el=document.getElementById('ptsList');
+  if(!pts.length){ el.innerHTML=''; return; }
+  el.innerHTML=`<div style="font-size:10px;color:var(--text-dim);margin-bottom:4px;font-family:'DM Mono',monospace">${pts.length} PONTO${pts.length!==1?'S':''} REGISTRADO${pts.length!==1?'S':''}</div>`+
+    pts.slice(-3).map((p,i)=>{const idx=pts.length>3?pts.length-3+i:i;return`<div class="pt-item"><span class="pt-num">P${idx+1}</span><span>${p[0].toFixed(5)}, ${p[1].toFixed(5)}</span></div>`;}).join('')+
+    (pts.length>3?`<div style="text-align:center;font-size:10px;color:var(--text-dim);font-family:'DM Mono'">+ ${pts.length-3} anteriores</div>`:'');
+}
+
+function updBtns(){
+  const u=document.getElementById('btnUndo'),c=document.getElementById('btnClearM');
+  if(u) u.disabled=!pts.length;
+  if(c) c.disabled=!pts.length;
+}
+
+function setTip(w,msg){
+  const el=document.getElementById(w==='m'?'tipM':'tipG');
+  if(el) el.innerHTML=msg;
+}
+
+// INIT
+renderHist();
+if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],15),()=>{});
+</script>
+</body>
+</html>
